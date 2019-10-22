@@ -32,11 +32,11 @@
 import requests
 import json
 import time
-#curl -X POST -H 'Authorization: Token c38dc447c1cfcd014f80daf64779715bc01357e1' -H "Content-Type: application/json" -d '{"direction":"w"}' localhost:8000/api/adv/move/
+#curl -X POST -H 'Authorization: Token a2a3fd507a34c14fde889a083fed721055e903b6' -H "Content-Type: application/json" -d '{"direction":"w"}' localhost:8000/api/adv/move/
 # URL = "http://localhost:8000/api/adv/move/"
 # data = {"direction": "w"}
 
-# r = requests.post(url = URL, headers={'Authorization': "Token c38dc447c1cfcd014f80daf64779715bc01357e1"}, json = data)
+# r = requests.post(url = URL, headers={'Authorization': "Token a2a3fd507a34c14fde889a083fed721055e903b6"}, json = data)
 # res = json.loads(r.text)
 # print(res)
 # a = res.copy()
@@ -45,7 +45,7 @@ import time
 rooms = [None]*500
 
 URL = "http://localhost:8000/api/adv/move/"
-HEADERS = {'Authorization': "Token c38dc447c1cfcd014f80daf64779715bc01357e1"}
+HEADERS = {'Authorization': f"Token {config('TEST_KEY')}"}
 
 def room_mapper():
     visited = set()
