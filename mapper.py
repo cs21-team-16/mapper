@@ -28,7 +28,7 @@
 # a[51] = 51
 
 # print(a)
-
+from decouple import config
 import requests
 import json
 import time
