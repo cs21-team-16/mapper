@@ -100,18 +100,27 @@ def room_mapper():
         print(f"Progressing... {len(visited)}")
 
         # Returns to last room with stuff in the directions stack, this will execute on dead ends
-        while current_room != direction['room_id']:
+        while current_room != direction['room_id'] and len(path_stack) > 0:
             # print(f"GOING BACK: {path_stack}")
             print(f"Going back... {len(path_stack)}")
             back = path_stack.pop()
-            r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back]})
+            r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back], "next_room_id": f"{rooms[current_room]['exits'][opposites[back]]}"})
             res = json.loads(r.text)
+            print(res['cooldown'])
             current_room = res['room_id']
             time.sleep(res['cooldown'])
+        
+        if len(path_stack) > 0 and current_room != direction['room_id']:
+            print(previous_room)
+            print(direction)
+            print(current_room)
+            print(rooms)
+            break
 
         path_stack.append(direction['direction'])
         r = requests.post(url = URL, headers = HEADERS, json = {"direction": direction['direction']})
         res = json.loads(r.text)
+        print(res['cooldown'])
         time.sleep(res['cooldown'])
         current_room = res['room_id']
 
@@ -138,7 +147,7 @@ def room_mapper():
         rooms[int(previous_room)]['exits'][direction['direction']] = current_room
         rooms[int(current_room)]['exits'][opposites[direction['direction']]] = previous_room
 
-room_mapper()
+        with open("room.txt", "w") as f:
+            f.write(rooms.__str__())
 
-with open("room.txt", "w") as f:
-    f.write(rooms.__str__())
+room_mapper()
