@@ -63,8 +63,10 @@ def room_mapper():
     }
 
     init = requests.get(url = 'http://localhost:8000/api/adv/init/',  headers = HEADERS)
+    # init = requests.get(url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/init/',  headers = HEADERS)
     init_res = json.loads(init.text)
-    time.sleep(init_res['cooldown'])
+    print(init_res['messages'])
+    # time.sleep(init_res['cooldown'])
 
     current_room = init_res['room_id']
     previous_room = None
@@ -89,7 +91,12 @@ def room_mapper():
     for i in init_res['exits']:
         directions_stack.append({'room_id': current_room, 'direction': i})
 
+    #TODO: Foolish Explorer bug? Path Stack is wrong sometimes
+    its_happened=False
     while len(directions_stack) > 0:
+        went_back = False
+        if its_happened:
+            print("IT HAPPENED********")
 
         visited.add(current_room)
         previous_room = current_room
@@ -97,31 +104,58 @@ def room_mapper():
 
         # print(path_stack)
         # print(directions_stack)
-        print(f"Progressing... {len(visited)}")
 
         # Returns to last room with stuff in the directions stack, this will execute on dead ends
         while current_room != direction['room_id'] and len(path_stack) > 0:
+            went_back = True
             # print(f"GOING BACK: {path_stack}")
             print(f"Going back... {len(path_stack)}")
             back = path_stack.pop()
-            r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back], "next_room_id": f"{rooms[current_room]['exits'][opposites[back]]}"})
-            res = json.loads(r.text)
+            if rooms[current_room]:
+                print(rooms[current_room]['exits'][opposites[back]])
+                r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back], "next_room_id": f"{rooms[current_room]['exits'][opposites[back]]}"})
+                res = json.loads(r.text)
+                # time.sleep(res['cooldown'])
+                print(res)
+            else:
+                r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back]})
+                res = json.loads(r.text)
+            print(res['messages'])
+            print(res['errors'])
             print(res['cooldown'])
             current_room = res['room_id']
-            time.sleep(res['cooldown'])
+            previous_room = current_room
+            # time.sleep(res['cooldown'])
         
-        if len(path_stack) > 0 and current_room != direction['room_id']:
+        if len(path_stack) == 0 and current_room != direction['room_id']:
             print(previous_room)
             print(direction)
             print(current_room)
-            print(rooms)
-            break
+            with open("error.txt", "w") as f:
+                f.write(f"{init_res}")
+                f.write("\n")
+                f.write(f"{previous_room}")
+                f.write("\n")
+                f.write(f"{direction}")
+                f.write("\n")
+                f.write(f"{current_room}")
+                f.write("\n")
+                f.write(f"{rooms}")
+                f.write("\n")
+            print("EXITING")
+            exit()
 
+        print(f"Progressing... {len(visited)}")
         path_stack.append(direction['direction'])
         r = requests.post(url = URL, headers = HEADERS, json = {"direction": direction['direction']})
         res = json.loads(r.text)
+
+        print(res['messages'])
+        print(res['errors'])
         print(res['cooldown'])
-        time.sleep(res['cooldown'])
+
+        # time.sleep(res['cooldown'])
+
         current_room = res['room_id']
 
         if res['room_id'] not in visited:
@@ -146,6 +180,27 @@ def room_mapper():
 
         rooms[int(previous_room)]['exits'][direction['direction']] = current_room
         rooms[int(current_room)]['exits'][opposites[direction['direction']]] = previous_room
+
+        if current_room in visited and went_back is False:
+            its_happened=True
+            print("In Visited, Error incoming?")
+            print("I'm going to try going back one step")
+            print(f"Going back... {len(path_stack)}")
+            back = path_stack.pop()
+            if rooms[current_room]:
+                print(rooms[current_room]['exits'][opposites[back]])
+                r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back], "next_room_id": f"{rooms[current_room]['exits'][opposites[back]]}"})
+                res = json.loads(r.text)
+                print(res)
+            else:
+                r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back]})
+                res = json.loads(r.text)
+            print(res['messages'])
+            print(res['errors'])
+            print(res['cooldown'])
+            current_room = res['room_id']
+            previous_room = current_room
+            # time.sleep(res['cooldown'])
 
         with open("room.txt", "w") as f:
             f.write(rooms.__str__())
