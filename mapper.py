@@ -150,6 +150,7 @@ def room_mapper():
         r = requests.post(url = URL, headers = HEADERS, json = {"direction": direction['direction']})
         res = json.loads(r.text)
 
+        print(f"Room ID: {res['room_id']}")
         print(res['messages'])
         print(res['errors'])
         print(res['cooldown'])
@@ -184,6 +185,8 @@ def room_mapper():
         if current_room in visited and went_back is False:
             its_happened=True
             print("In Visited, Error incoming?")
+            print(f"cur: {rooms[current_room]}")
+            print(f"prev: {rooms[previous_room]}")
             print("I'm going to try going back one step")
             print(f"Going back... {len(path_stack)}")
             back = path_stack.pop()
