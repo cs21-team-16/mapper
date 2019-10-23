@@ -202,7 +202,7 @@ def room_mapper():
             previous_room = current_room
             # time.sleep(res['cooldown'])
 
-        with open("room.txt", "w") as f:
-            f.write(rooms.__str__())
+with open("room.txt", "w") as f:
+    f.write(rooms.__str__())
 
 room_mapper()
