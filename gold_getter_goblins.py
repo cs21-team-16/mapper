@@ -26,9 +26,11 @@ def look_for_shop(gold):
     current_room = init_res['room_id']
     queue.append([map[current_room]])
     while len(queue) > 0:
-        path = queue.pop(0)
+        path = queue.pop()
         vertex = path[-1]
         if vertex["room_id"] not in visited:
+            print(vertex["title"])
+            visited.add(vertex["room_id"])
             if vertex["title"] == "Shop":
                 directions = []
                 for i in range(0, len(path)-1):
@@ -40,30 +42,31 @@ def look_for_shop(gold):
                     res = json.loads(r.text)
                     print(res)
                     time.sleep(res["cooldown"])
-                    break
-            visited.add(vertex["room_id"])
+                break
             for i in vertex["exits"]:
-                if vertex["exits"][i]:
+                if vertex["exits"][i] is not None and vertex["exits"][i] not in visited:
                     new_path = list(path)
                     new_path.append(map[vertex["exits"][i]])
+                    queue.insert(0, new_path)
     r = requests.post(url = f"{BASE_URL}/status/", headers = HEADERS)
     res = json.loads(r.text)
+    gold = res['gold']
     print(res)
     time.sleep(res["cooldown"])
     if len(res["inventory"]) > 0:
-        for i in res["inventory"]:
+        for i in range(0, len(res["inventory"])):
             # if "treasure" in res["inventory"][i]:
-            if "treasure" in i:
+            if "treasure" in res["inventory"][i]:
                 req = requests.post(url = f"{BASE_URL}/sell/", headers = HEADERS, json = {"name": res["inventory"][i]})
                 result = json.loads(req.text)
-                print(result)
+                print(f"LOOK HERE: {result}")
                 time.sleep(result["cooldown"])
 
                 req = requests.post(url = f"{BASE_URL}/sell/", headers = HEADERS, json = {"name": res["inventory"][i], "confirm":"yes"})
                 result = json.loads(req.text)
                 # global gold
                 # gold += #Some value here that 
-                print(result)
+                print(f"LOOK HERE: {result}")
                 time.sleep(result["cooldown"])
                 # This might need to be edited for confirmation of sale
     
@@ -99,7 +102,7 @@ def look_for_treasure():
     while ready_to_sell is False:
         directions = []
         for i in map[current_room_ID]["exits"]:
-            if map[current_room_ID]["exits"][i]:
+            if map[current_room_ID]["exits"][i] is not None:
                 if last_move is None or i not in opposites[last_move]:
                     directions.append(i)
         if len(directions) == 0:
@@ -146,9 +149,11 @@ def change_name():
     current_room = init_res['room_id']
     queue.append([map[current_room]])
     while len(queue) > 0:
-        path = queue.pop(0)
+        path = queue.pop()
         vertex = path[-1]
         if vertex["room_id"] not in visited:
+            print(vertex["title"])
+            visited.add(vertex["room_id"])
             if vertex["title"] == "Pirate Ry's":
                 directions = []
                 for i in range(0, len(path)-1):
@@ -160,18 +165,18 @@ def change_name():
                     res = json.loads(r.text)
                     print(res)
                     time.sleep(res["cooldown"])
-                    break
-            visited.add(vertex["room_id"])
+                break
             for i in vertex["exits"]:
-                if vertex["exits"][i]:
+                if vertex["exits"][i] is not None and vertex["exits"][i] not in visited:
                     new_path = list(path)
                     new_path.append(map[vertex["exits"][i]])
+                    queue.insert(0, new_path)
     r = requests.post(url = f"{BASE_URL}/status/", headers = HEADERS)
     res = json.loads(r.text)
     print(res)
     time.sleep(res["cooldown"])
     if res["gold"] >= 1000:
-        req = requests.post(url = f"{BASE_URL}/change_name/", headers = HEADERS, json = {"name": f"{config('NEW_NAME')}"})
+        req = requests.post(url = f"{BASE_URL}/change_name/", headers = HEADERS, json = {"name": f"{config('NEW_NAME')}", "confirm": "aye"})
         result = json.loads(req.text)
         print(result)
         time.sleep(res["cooldown"])
@@ -179,8 +184,42 @@ def change_name():
         print("We don't have enough gold.  What do?")
 
 
+def find_by_coord(coord):
+    queue = []
+    visited = set()
+    init = requests.get(url = f"{BASE_URL}/init/",  headers = HEADERS)
+    init_res = json.loads(init.text)
+    print(init_res)
+    time.sleep(init_res["cooldown"])
+    current_room = init_res['room_id']
+    queue.append([map[current_room]])
+    while len(queue) > 0:
+        path = queue.pop()
+        vertex = path[-1]
+        if vertex["room_id"] not in visited:
+            print(vertex["title"])
+            visited.add(vertex["room_id"])
+            if vertex["coordinates"] == coord:
+                directions = []
+                for i in range(0, len(path)-1):
+                    for d in path[i]["exits"]:
+                        if path[i]["exits"][d] == path[i + 1]["room_id"]:
+                            directions.append({"direction": d, "id": path[i + 1]["room_id"]})
+                for i in directions:
+                    r = requests.post(url = f"{BASE_URL}/move/", headers = HEADERS, json = {"direction": i["direction"], "next_room_id": f"{i['id']}"})
+                    res = json.loads(r.text)
+                    print(res)
+                    time.sleep(res["cooldown"])
+                break
+            for i in vertex["exits"]:
+                if vertex["exits"][i] is not None and vertex["exits"][i] not in visited:
+                    new_path = list(path)
+                    new_path.append(map[vertex["exits"][i]])
+                    queue.insert(0, new_path)
 
 
+
+find_by_coord("(61,55)")
 
 
 stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
@@ -190,4 +229,7 @@ time.sleep(stats_res["cooldown"])
 while gold < 1000:
     look_for_treasure()
     look_for_shop(gold)
+    new_stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
+    new_stats_res = json.loads(new_stats.text)
+    gold = new_stats_res["gold"]
 change_name()

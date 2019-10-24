@@ -44,7 +44,8 @@ import time
 
 rooms = [None]*500
 
-URL = "http://localhost:8000/api/adv/move/"
+# URL = "http://localhost:8000/api/adv/move/"
+URL = "https://lambda-treasure-hunt.herokuapp.com/api/adv/move/"
 HEADERS = {'Authorization': f"Token {config('TEST_KEY')}"}
 
 def room_mapper():
@@ -62,11 +63,11 @@ def room_mapper():
         "w": "e"
     }
 
-    init = requests.get(url = 'http://localhost:8000/api/adv/init/',  headers = HEADERS)
-    # init = requests.get(url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/init/',  headers = HEADERS)
+    # init = requests.get(url = 'http://localhost:8000/api/adv/init/',  headers = HEADERS)
+    init = requests.get(url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/init/',  headers = HEADERS)
     init_res = json.loads(init.text)
     print(init_res['messages'])
-    # time.sleep(init_res['cooldown'])
+    time.sleep(init_res['cooldown'])
 
     current_room = init_res['room_id']
     previous_room = None
@@ -115,7 +116,7 @@ def room_mapper():
                 print(rooms[current_room]['exits'][opposites[back]])
                 r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back], "next_room_id": f"{rooms[current_room]['exits'][opposites[back]]}"})
                 res = json.loads(r.text)
-                # time.sleep(res['cooldown'])
+                time.sleep(res['cooldown'])
                 print(res)
             else:
                 r = requests.post(url = URL, headers = HEADERS, json = {"direction": opposites[back]})
@@ -125,7 +126,7 @@ def room_mapper():
             print(res['cooldown'])
             current_room = res['room_id']
             previous_room = current_room
-            # time.sleep(res['cooldown'])
+            time.sleep(res['cooldown'])
         
         if len(path_stack) == 0 and current_room != direction['room_id']:
             print(previous_room)
@@ -155,7 +156,7 @@ def room_mapper():
         print(res['errors'])
         print(res['cooldown'])
 
-        # time.sleep(res['cooldown'])
+        time.sleep(res['cooldown'])
 
         current_room = res['room_id']
 
@@ -203,9 +204,9 @@ def room_mapper():
             print(res['cooldown'])
             current_room = res['room_id']
             previous_room = current_room
-            # time.sleep(res['cooldown'])
+            time.sleep(res['cooldown'])
 
-with open("room.txt", "w") as f:
-    f.write(rooms.__str__())
+        with open("room.txt", "w") as f:
+            f.write(rooms.__str__())
 
 room_mapper()
