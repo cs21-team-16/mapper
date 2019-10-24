@@ -101,7 +101,7 @@ def look_for_treasure():
     while ready_to_sell is False:
         directions = []
         for i in map[current_room_ID]["exits"]:
-            if map[current_room_ID]["exits"][i]:
+            if map[current_room_ID]["exits"][i] is not None:
                 if last_move is None or i not in opposites[last_move]:
                     directions.append(i)
         if len(directions) == 0:
@@ -191,6 +191,6 @@ stats_res = json.loads(stats.text)
 gold = stats_res["gold"]
 time.sleep(stats_res["cooldown"])
 while gold < 1000:
-    # look_for_treasure()
+    look_for_treasure()
     look_for_shop(gold)
 change_name()
