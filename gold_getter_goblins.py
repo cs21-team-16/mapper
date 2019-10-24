@@ -50,6 +50,7 @@ def look_for_shop(gold):
                     queue.insert(0, new_path)
     r = requests.post(url = f"{BASE_URL}/status/", headers = HEADERS)
     res = json.loads(r.text)
+    gold = res['gold']
     print(res)
     time.sleep(res["cooldown"])
     if len(res["inventory"]) > 0:
@@ -149,9 +150,11 @@ def change_name():
     current_room = init_res['room_id']
     queue.append([map[current_room]])
     while len(queue) > 0:
-        path = queue.pop(0)
+        path = queue.pop()
         vertex = path[-1]
         if vertex["room_id"] not in visited:
+            print(vertex["title"])
+            visited.add(vertex["room_id"])
             if vertex["title"] == "Pirate Ry's":
                 directions = []
                 for i in range(0, len(path)-1):
@@ -163,18 +166,18 @@ def change_name():
                     res = json.loads(r.text)
                     print(res)
                     time.sleep(res["cooldown"])
-                    break
-            visited.add(vertex["room_id"])
+                break
             for i in vertex["exits"]:
-                if vertex["exits"][i]:
+                if vertex["exits"][i] is not None and vertex["exits"][i] not in visited:
                     new_path = list(path)
                     new_path.append(map[vertex["exits"][i]])
+                    queue.insert(0, new_path)
     r = requests.post(url = f"{BASE_URL}/status/", headers = HEADERS)
     res = json.loads(r.text)
     print(res)
     time.sleep(res["cooldown"])
     if res["gold"] >= 1000:
-        req = requests.post(url = f"{BASE_URL}/change_name/", headers = HEADERS, json = {"name": f"{config('NEW_NAME')}"})
+        req = requests.post(url = f"{BASE_URL}/change_name/", headers = HEADERS, json = {"name": f"{config('NEW_NAME')}", "confirm": "aye"})
         result = json.loads(req.text)
         print(result)
         time.sleep(res["cooldown"])
@@ -188,6 +191,7 @@ def change_name():
 
 stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
 stats_res = json.loads(stats.text)
+print(stats_res)
 gold = stats_res["gold"]
 time.sleep(stats_res["cooldown"])
 while gold < 1000:
