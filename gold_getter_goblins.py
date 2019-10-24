@@ -13,8 +13,6 @@ with open("production-rooms.txt", "r") as f:
     for line in f:
         map = json.loads(line)
 
-print(f"first room: {map[0]}")
-
 
 
 def look_for_shop(gold):
@@ -67,6 +65,7 @@ def look_for_shop(gold):
                 # global gold
                 # gold += #Some value here that 
                 print(f"LOOK HERE: {result}")
+                print("Made a sale")
                 time.sleep(result["cooldown"])
                 # This might need to be edited for confirmation of sale
     
@@ -97,9 +96,12 @@ def look_for_treasure():
     encumbrance = status_res["encumbrance"]
     time.sleep(status_res["cooldown"])
     
+    visited = set()
     ready_to_sell = False
     last_move = None
     while ready_to_sell is False:
+        # if current_room_ID not in visited:
+        #     visited.add(current_room_ID)
         directions = []
         for i in map[current_room_ID]["exits"]:
             if map[current_room_ID]["exits"][i] is not None:
@@ -107,6 +109,41 @@ def look_for_treasure():
                     directions.append(i)
         if len(directions) == 0:
             break
+            # queue = []
+            # BFS_visited = set()
+            # new_init = requests.get(url = f"{BASE_URL}/init/",  headers = HEADERS)
+            # new_init_res = json.loads(new_init.text)
+            # print(new_init_res)
+            # time.sleep(new_init_res["cooldown"])
+            # current_room = new_init_res['room_id']
+            # queue.append([map[current_room]])
+            # while len(queue) > 0:
+            #     path = queue.pop()
+            #     vertex = path[-1]
+            #     if vertex["room_id"] not in BFS_visited:
+            #         print(vertex["title"])
+            #         if vertex["room_id"] not in visited:
+            #             moves = []
+            #             for i in range(0, len(path)-1):
+            #                 for d in path[i]["exits"]:
+            #                     if path[i]["exits"][d] == path[i + 1]["room_id"]:
+            #                         moves.append({"direction": d, "id": path[i + 1]["room_id"]})
+            #                         last_move = d
+            #             for i in moves:
+            #                 r = requests.post(url = f"{BASE_URL}/move/", headers = HEADERS, json = {"direction": i["direction"], "next_room_id": f"{i['id']}"})
+            #                 res = json.loads(r.text)
+            #                 print(res)
+            #                 time.sleep(res["cooldown"])
+            #                 current_room = res
+            #             for i in map[current_room_ID]["exits"]:
+            #                 if map[current_room_ID]["exits"][i] is not None:
+            #                     if last_move is None or i not in opposites[last_move]:
+            #                         directions.append(i)
+            #         for i in vertex["exits"]:
+            #             if vertex["exits"][i] is not None and vertex["exits"][i] not in BFS_visited:
+            #                 new_path = list(path)
+            #                 new_path.append(map[vertex["exits"][i]])
+            #                 queue.insert(0, new_path)
         print(directions)
         choice = random.randrange(0,len(directions))
         last_move = directions[choice]
@@ -124,6 +161,7 @@ def look_for_treasure():
                         grab = requests.post(url = f"{BASE_URL}/take/", headers = HEADERS, json = {"name": i})
                         grab_res = json.loads(grab.text)
                         time.sleep(grab_res["cooldown"])
+                        print("Grabbed a treasure!")
                         if encumbrance == strength:
                             ready_to_sell = True
                             break
@@ -219,17 +257,24 @@ def find_by_coord(coord):
 
 
 
-find_by_coord("(61,55)")
+# find_by_coord("(61,55)")  #<-------This takes me to the top of the mountain to pray
+# pray = requests.post(url = f"{BASE_URL}/pray/", headers = HEADERS)
+# pray_res = json.loads(pray.text)
+# time.sleep(pray_res["cooldown"])
+
 
 
 stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
 stats_res = json.loads(stats.text)
 gold = stats_res["gold"]
+print(stats_res)
 time.sleep(stats_res["cooldown"])
 while gold < 1000:
-    look_for_treasure()
+    # look_for_treasure()
     look_for_shop(gold)
     new_stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
     new_stats_res = json.loads(new_stats.text)
     gold = new_stats_res["gold"]
+    time.sleep(new_stats_res["cooldown"])
+    print(new_stats)
 change_name()
