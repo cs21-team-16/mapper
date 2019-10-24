@@ -264,17 +264,28 @@ def find_by_coord(coord):
 
 
 
-stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
-stats_res = json.loads(stats.text)
-gold = stats_res["gold"]
-print(stats_res)
-time.sleep(stats_res["cooldown"])
-while gold < 1000:
-    # look_for_treasure()
-    look_for_shop(gold)
-    new_stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
-    new_stats_res = json.loads(new_stats.text)
-    gold = new_stats_res["gold"]
-    time.sleep(new_stats_res["cooldown"])
-    print(new_stats)
-change_name()
+# stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)  #<------ This got my name changed
+# stats_res = json.loads(stats.text)
+# gold = stats_res["gold"]
+# print(stats_res)
+# time.sleep(stats_res["cooldown"])
+# while gold < 1000:
+#     # look_for_treasure()
+#     look_for_shop(gold)
+#     new_stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
+#     new_stats_res = json.loads(new_stats.text)
+#     gold = new_stats_res["gold"]
+#     time.sleep(new_stats_res["cooldown"])
+#     print(new_stats)
+# change_name()
+
+# find_by_coord("(63,61)")  # <------ Wishing well
+# well = requests.post(url = f"{BASE_URL}/examine/", headers = HEADERS, json = {"name": "well"})
+# well_res = json.loads(well.text)
+# print(well_res)
+
+# find_by_coord("(51,60)")  # <--------- My first coin, hopefully  IT WORKED!!!
+
+final = requests.get(url = "https://lambda-treasure-hunt.herokuapp.com/api/bc/get_balance/", headers = HEADERS)
+final_res = json.loads(final.text)
+print(final_res)
