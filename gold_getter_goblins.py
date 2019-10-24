@@ -185,16 +185,49 @@ def change_name():
         print("We don't have enough gold.  What do?")
 
 
+def find_by_coord(coord):
+    queue = []
+    visited = set()
+    init = requests.get(url = f"{BASE_URL}/init/",  headers = HEADERS)
+    init_res = json.loads(init.text)
+    time.sleep(init_res["cooldown"])
+    current_room = init_res['room_id']
+    queue.append([map[current_room]])
+    while len(queue) > 0:
+        path = queue.pop()
+        vertex = path[-1]
+        if vertex["room_id"] not in visited:
+            print(vertex["title"])
+            visited.add(vertex["room_id"])
+            if vertex["coordinates"] == coord:
+                directions = []
+                for i in range(0, len(path)-1):
+                    for d in path[i]["exits"]:
+                        if path[i]["exits"][d] == path[i + 1]["room_id"]:
+                            directions.append({"direction": d, "id": path[i + 1]["room_id"]})
+                for i in directions:
+                    r = requests.post(url = f"{BASE_URL}/move/", headers = HEADERS, json = {"direction": i["direction"], "next_room_id": f"{i['id']}"})
+                    res = json.loads(r.text)
+                    print(res)
+                    time.sleep(res["cooldown"])
+                break
+            for i in vertex["exits"]:
+                if vertex["exits"][i] is not None and vertex["exits"][i] not in visited:
+                    new_path = list(path)
+                    new_path.append(map[vertex["exits"][i]])
+                    queue.insert(0, new_path)
 
 
 
+find_by_coord("(61,55)")
 
-stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
-stats_res = json.loads(stats.text)
-print(stats_res)
-gold = stats_res["gold"]
-time.sleep(stats_res["cooldown"])
-while gold < 1000:
-    look_for_treasure()
-    look_for_shop(gold)
-change_name()
+
+# stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
+# stats_res = json.loads(stats.text)
+# print(stats_res)
+# gold = stats_res["gold"]
+# time.sleep(stats_res["cooldown"])
+# while gold < 1000:
+#     look_for_treasure()
+#     look_for_shop(gold)
+# change_name()
