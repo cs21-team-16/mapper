@@ -1,13 +1,14 @@
 import json
 import time
 import random
+from decouple import config
 
 # TEST_URL = "http://localhost:8000/api/adv"
 BASE_URL = "https://lambda-treasure-hunt.herokuapp.com/api/adv"
 HEADERS = {'Authorization': f"Token {config('TEST_KEY')}"}
 
 map = []
-with open("test-rooms.txt", "r") as f:
+with open("production-rooms.txt", "r") as f:
     for line in f:
         map = json.loads(line)
 
@@ -34,7 +35,7 @@ def look_for_shop(gold):
                         if path[i]["exits"][d] == path[i + 1]["room_id"]:
                             directions.append({"direction": d, "id": path[i + 1]["room_id"]})
                 for i in directions:
-                    r = requests.post(url = f"{BASE_URL}/move/", headers = HEADERS, json = {"direction": i["direction"], "next_room_id": f"{i["id"]}"})
+                    r = requests.post(url = f"{BASE_URL}/move/", headers = HEADERS, json = {"direction": i["direction"], "next_room_id": f"{i['id']}"})
                     res = json.loads(r.text)
                     print(res)
                     time.sleep(res["cooldown"])
@@ -55,14 +56,14 @@ def look_for_shop(gold):
                 req = requests.post(url = f"{BASE_URL}/sell/", headers = HEADERS, json = {"name": res["inventory"][i]})
                 result = json.loads(req.text)
                 print(result)
-                time.sleep(res["cooldown"])
+                time.sleep(result["cooldown"])
 
                 req = requests.post(url = f"{BASE_URL}/sell/", headers = HEADERS, json = {"name": res["inventory"][i], "confirm":"yes"})
                 result = json.loads(req.text)
                 # global gold
                 # gold += #Some value here that 
                 print(result)
-                time.sleep(res["cooldown"])
+                time.sleep(result["cooldown"])
                 # This might need to be edited for confirmation of sale
     
 
@@ -114,7 +115,7 @@ def look_for_treasure():
                     if weight <= strength - encumbrance:
                         encumbrance += weight
                         requests.post(url = f"{BASE_URL}/take/", headers = HEADERS, json = {"name": i})
-                        if encumbrance = strength:
+                        if encumbrance == strength:
                             ready_to_sell = True
                             break
                     else:
@@ -147,7 +148,7 @@ def change_name():
                         if path[i]["exits"][d] == path[i + 1]["room_id"]:
                             directions.append({"direction": d, "id": path[i + 1]["room_id"]})
                 for i in directions:
-                    r = requests.post(url = f"{BASE_URL}/move/", headers = HEADERS, json = {"direction": i["direction"], "next_room_id": f"{i["id"]}"})
+                    r = requests.post(url = f"{BASE_URL}/move/", headers = HEADERS, json = {"direction": i["direction"], "next_room_id": f"{i['id']}"})
                     res = json.loads(r.text)
                     print(res)
                     time.sleep(res["cooldown"])
@@ -162,7 +163,7 @@ def change_name():
     print(res)
     time.sleep(res["cooldown"])
     if res["gold"] >= 1000:
-        req = requests.post(url = f"{BASE_URL}/change_name/", headers = HEADERS, json = {"name": f"{config('NEW_NAME')}"]})
+        req = requests.post(url = f"{BASE_URL}/change_name/", headers = HEADERS, json = {"name": f"{config('NEW_NAME')}"})
         result = json.loads(req.text)
         print(result)
         time.sleep(res["cooldown"])
