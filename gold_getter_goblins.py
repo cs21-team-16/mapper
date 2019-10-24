@@ -15,11 +15,10 @@ print(f"first room: {map[0]}")
 
 
 
-def look_for_shop():
+def look_for_shop(gold):
     queue = []
     visited = set()
     init = requests.get(url = f"{BASE_url}/init/",  headers = HEADERS)
-    # init = requests.get(url = 'https://lambda-treasure-hunt.herokuapp.com/api/adv/init/',  headers = HEADERS)
     init_res = json.loads(init.text)
     time.sleep(init_res["cooldown"])
     current_room = init_res['room_id']
@@ -53,12 +52,19 @@ def look_for_shop():
         for i in res["inventory"]:
             # if "treasure" in res["inventory"][i]:
             if "treasure" in i:
-                req = requests.post(url = f"{BASE_URL}/sell/", headers = HEADERS, json = {"name": res["inventory"][i], "confirm":"yes"})
+                req = requests.post(url = f"{BASE_URL}/sell/", headers = HEADERS, json = {"name": res["inventory"][i]})
                 result = json.loads(req.text)
                 print(result)
                 time.sleep(res["cooldown"])
-                # This might need to be edited for confirmation of sale
 
+                req = requests.post(url = f"{BASE_URL}/sell/", headers = HEADERS, json = {"name": res["inventory"][i], "confirm":"yes"})
+                result = json.loads(req.text)
+                # global gold
+                # gold += #Some value here that 
+                print(result)
+                time.sleep(res["cooldown"])
+                # This might need to be edited for confirmation of sale
+    
 
 
 
@@ -109,8 +115,14 @@ def look_for_treasure():
                         encumbrance += weight
                         requests.post(url = f"{BASE_URL}/take/", headers = HEADERS, json = {"name": i})
                         if encumbrance = strength:
+                            ready_to_sell = True
+                            break
                     else:
                         ready_to_sell = True
+        r = requests.post(url = f"{BASE_URL}/move/", headers = HEADERS, json = {"direction": last_move})
+        r_res = json.loads(r.text)
+        time.sleep(r_res["cooldown"])
+                
             
                     
 
@@ -156,3 +168,17 @@ def change_name():
         time.sleep(res["cooldown"])
     else:
         print("We don't have enough gold.  What do?")
+
+
+
+
+
+
+stats = requests.get(url = f"{BASE_url}/status/",  headers = HEADERS)
+stats_res = json.loads(stats.text)
+gold = stats_res["gold"]
+time.sleep(stats_res["cooldown"])
+while gold < 0:
+    look_for_treasure()
+    look_for_shop(gold)
+change_name()
