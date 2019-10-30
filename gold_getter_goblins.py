@@ -53,8 +53,8 @@ def look_for_shop(gold):
     time.sleep(res["cooldown"])
     if len(res["inventory"]) > 0:
         for i in range(0, len(res["inventory"])):
-            # if "treasure" in res["inventory"][i]:
-            if "treasure" in res["inventory"][i]:
+            # if "egg" in res["inventory"][i]:
+            if "egg" in res["inventory"][i]:
                 req = requests.post(url = f"{BASE_URL}/sell/", headers = HEADERS, json = {"name": res["inventory"][i]})
                 result = json.loads(req.text)
                 print(f"LOOK HERE: {result}")
@@ -72,11 +72,11 @@ def look_for_shop(gold):
 
 
 
-def look_for_treasure():
-    # wander around randomly forward, checking each room for treasure
-    # if treasure, examine it for weight,
-    # if won't be overemcombered, get treasure
-    # check status after each treasure
+def look_for_egg():
+    # wander around randomly forward, checking each room for egg
+    # if egg, examine it for weight,
+    # if won't be overemcombered, get egg
+    # check status after each egg
     # if emcumbered is full, run look for shop
     opposites = {
         "n": "s",
@@ -149,7 +149,7 @@ def look_for_treasure():
         last_move = directions[choice]
         if len(current_room["items"]) > 0:
             for i in current_room["items"]:
-                if "treasure" in i:
+                if "egg" in i:
                     item = requests.post(url = f"{BASE_URL}/examine/", headers = HEADERS, json = {"name":i})
                     item_res = json.loads(item.text)
                     print(item_res)
@@ -161,7 +161,7 @@ def look_for_treasure():
                         grab = requests.post(url = f"{BASE_URL}/take/", headers = HEADERS, json = {"name": i})
                         grab_res = json.loads(grab.text)
                         time.sleep(grab_res["cooldown"])
-                        print("Grabbed a treasure!")
+                        print("Grabbed a egg!")
                         if encumbrance == strength:
                             ready_to_sell = True
                             break
@@ -178,7 +178,7 @@ def look_for_treasure():
 
 
 def change_name():
-    # if gold >= 1000 stop looking for treasure, find name changer, change name
+    # if gold >= 1000 stop looking for egg, find name changer, change name
     queue = []
     visited = set()
     init = requests.get(url = f"{BASE_URL}/init/",  headers = HEADERS)
@@ -264,20 +264,20 @@ def find_by_coord(coord):
 
 
 
-# stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)  #<------ This got my name changed
-# stats_res = json.loads(stats.text)
-# gold = stats_res["gold"]
-# print(stats_res)
-# time.sleep(stats_res["cooldown"])
-# while gold < 1000:
-#     # look_for_treasure()
-#     look_for_shop(gold)
-#     new_stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
-#     new_stats_res = json.loads(new_stats.text)
-#     gold = new_stats_res["gold"]
-#     time.sleep(new_stats_res["cooldown"])
-#     print(new_stats)
-# change_name()
+stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)  #<------ This got my name changed
+stats_res = json.loads(stats.text)
+gold = stats_res["gold"]
+print(stats_res)
+time.sleep(stats_res["cooldown"])
+while gold < 1000:
+    look_for_egg()
+    look_for_shop(gold)
+    new_stats = requests.post(url = f"{BASE_URL}/status/",  headers = HEADERS)
+    new_stats_res = json.loads(new_stats.text)
+    gold = new_stats_res["gold"]
+    time.sleep(new_stats_res["cooldown"])
+    print(new_stats)
+change_name()
 
 # find_by_coord("(63,61)")  # <------ Wishing well
 # well = requests.post(url = f"{BASE_URL}/examine/", headers = HEADERS, json = {"name": "well"})
@@ -286,6 +286,6 @@ def find_by_coord(coord):
 
 # find_by_coord("(51,60)")  # <--------- My first coin, hopefully  IT WORKED!!!
 
-final = requests.get(url = "https://lambda-treasure-hunt.herokuapp.com/api/bc/get_balance/", headers = HEADERS)
-final_res = json.loads(final.text)
-print(final_res)
+# final = requests.get(url = "https://lambda-egg-hunt.herokuapp.com/api/bc/get_balance/", headers = HEADERS)
+# final_res = json.loads(final.text)
+# print(final_res)
